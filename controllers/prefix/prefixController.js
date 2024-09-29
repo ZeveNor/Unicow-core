@@ -6,7 +6,7 @@ let result = '';
 const getAllPrefix = async () => {
     const client = await postgres.connect();
     try {
-        result = await client.query('SELECT * FROM prefix and isdelete = FALSE;');
+        result = await client.query('SELECT * FROM prefix WHERE isdelete = FALSE;');
         return result.rows;
     } catch (err) {
         console.error('Error fetching all prefixes:', err);
@@ -21,7 +21,6 @@ const getPrefixById = async (id) => {
     const client = await postgres.connect();
     try {
         result = await client.query('SELECT * FROM prefix WHERE id = $1 and isdelete = FALSE;', [id]);
-        console.log(result);
         return result.rows;
     } catch (err) {
         console.error(`Error fetching prefix with ID ${id}:`, err);
