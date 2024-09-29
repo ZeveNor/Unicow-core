@@ -1,42 +1,5 @@
-<<<<<<< HEAD
-const express = require('express');
-const api = express.Router();
-const studentController = require('../controllers/student/studentController');
-
-api.get('/', (req, res) => {
-  studentController.getAllStudents(req, res);
-});
-
-api.get('/:id', (req, res) => {
-  studentController.getStudentById(req, res);
-});
-
-// router.post('/createByQuery', (req, res) => {
-//   const { firstName, lastName, age } = req.query;
-//   studentController.createStudent(req, res, { firstName, lastName, age });
-// });
-
-// router.post('/createByRoute/:firstName/:lastName/:age', (req, res) => {
-//   const { firstName, lastName, age } = req.params;
-//   studentController.createStudent(req, res, { firstName, lastName, age });
-// });
-
-// router.post('/', (req, res) => {
-//   studentController.createStudent(req, res, req.body);
-// });
-
-// router.put('/:id', (req, res) => {
-//   studentController.updateStudent(req, res, req.body);
-// });
-
-// router.delete('/:id', (req, res) => {
-//   studentController.deleteStudent(req, res);
-// });
-
-module.exports = api;
-=======
-import express from 'express';
-import {getAllStudents,getStudentById, updateStudent,deleteStudent,forceDelete, createStudent,restoreStudent} from '../controllers/student/studentController.js';
+import express from "express";
+import StudentController from "../controllers/section/sectionController.js";
 
 const router = express.Router();
 
@@ -49,10 +12,9 @@ const router = express.Router();
     Permanent Delete /api/students/:id (Force Delete Danger!!)
 */
 
-// Get all students (GET /api/students/)
 router.get('/', async (req, res) => {
   try {
-    const data = await getAllStudents();
+    const data = await StudentController.getAllStudents();
     res.status(200).json({ status: '200', result: data });
   } catch (err) {
     console.log(err);
@@ -60,21 +22,19 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Get student by ID (GET /api/students/:id)
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
   if (!id) {
     return res.status(400).json({ status: '400', result: 'ID is required.' });
   }
   try {
-    const data = await getStudentById(id);
+    const data = await StudentController.getStudentById(id);
     res.status(200).json({ status: '200', result: data });
   } catch (err) {
     res.status(500).json({ status: '500', result: 'Internal Server Error' });
   }
 });
 
-// Create a new student (POST /api/students/)
 router.post('/', async (req, res) => {
   const {
     prefix_id: prefixId,
@@ -110,14 +70,13 @@ router.post('/', async (req, res) => {
   };
 
   try {
-    const data = await createStudent(studentData);
+    const data = await StudentController.createStudent(studentData);
     res.status(201).json({ status: 201, result: data });
   } catch (error) {
     res.status(500).json({ status: 500, message: 'Error creating student', error: error.message });
   }
 });
 
-// Update student details (PUT /api/students/:id)
 router.put('/:id', async (req, res) => { // Added `async`
   const { id } = req.params;
   const updateData = req.body;
@@ -126,8 +85,8 @@ router.put('/:id', async (req, res) => { // Added `async`
     return res.status(400).json({ code: '400', description: 'ID and update data required.' });
   }
 
-  try { // Added try-catch block for async operations
-    const data = await updateStudent(id, updateData);
+  try {
+    const data = await StudentController.updateStudent(id, updateData);
     if (data) {
       res.status(200).json({ status: 200, result: data });
     } else {
@@ -138,7 +97,6 @@ router.put('/:id', async (req, res) => { // Added `async`
   }
 });
 
-// Soft delete student (DELETE /api/students/:id)
 router.delete('/:id', async (req, res) => { // Added `async`
   const { id } = req.params;
 
@@ -146,8 +104,8 @@ router.delete('/:id', async (req, res) => { // Added `async`
     return res.status(400).json({ code: '400', description: 'ID is required.' });
   }
 
-  try { // Added try-catch block for async operations
-    const data = await deleteStudent(id);
+  try {
+    const data = await StudentController.deleteStudent(id);
     if (data) {
       res.status(204).send();
     } else {
@@ -158,7 +116,6 @@ router.delete('/:id', async (req, res) => { // Added `async`
   }
 });
 
-// Force delete student (Permanent delete) (DELETE /api/students/console/:id)
 router.delete('/console/:id', async (req, res) => { // Added `async`
   const { id } = req.params;
 
@@ -166,8 +123,8 @@ router.delete('/console/:id', async (req, res) => { // Added `async`
     return res.status(400).json({ code: '400', description: 'ID is required.' });
   }
 
-  try { // Added try-catch block for async operations
-    const data = await forceDelete(id);
+  try {
+    const data = await StudentController.forceDelete(id);
     if (data) {
       res.status(204).send();
     } else {
@@ -178,5 +135,4 @@ router.delete('/console/:id', async (req, res) => { // Added `async`
   }
 });
 
-export default router; // Use `export default` instead of `module.exports`
->>>>>>> 9ba8cc4 (add prefix API & student API.)
+export default router;
