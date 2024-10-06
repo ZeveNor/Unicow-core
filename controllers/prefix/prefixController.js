@@ -102,7 +102,7 @@ const deletePrefix = async (id) => {
     const client = await postgres.connect();
     try {
         result = await client.query(
-            `UPDATE prefix SET isdelete = TRUE WHERE id = $1 and isdelete = FALSE RETURNING *;`, [id]
+            `UPDATE prefix SET isdelete = TRUE, updatedat = CURRENT_TIMESTAMP ,deletedat = current_timestamp WHERE id = $1 and isdelete = FALSE RETURNING *;`, [id]
         );
         return result.rows.length > 0 ? result.rows : 'prefix not found';
     } catch (err) {
@@ -118,7 +118,7 @@ const restorePrefix = async (id) => {
     const client = await postgres.connect();
     try {
         const result = await client.query(
-            `UPDATE prefix SET isdelete = FALSE WHERE id = $1 and isdelete = TRUE RETURNING *;`, [id]
+            `UPDATE prefix SET isdelete = FALSE, updatedat = current_timestamp, deletedat = null WHERE id = $1 and isdelete = TRUE RETURNING *;`, [id]
         );
         return result.rows.length > 0 ? result.rows[0] : 'prefix not found';
     } catch (err) {

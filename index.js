@@ -17,6 +17,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/students', studentRoutes);
 app.use('/api/prefixs', prefixRoutes);
 app.use('/api/sections', sectionRoutes);
+app.use('/api/curriculums', curriculumRoutes);
 
 // Base route
 app.get('/', (req, res) => {
