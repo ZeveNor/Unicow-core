@@ -123,7 +123,7 @@ router.delete('/:id',async (req, res) => {
     }
     try{
         const data = await SectionController.forceDeleteSection(id);
-        res.status(200).json({ status: '200', result: data });
+        res.status(200).json({ status: '200', result: data, desc: 'Forces deleted completed.' });
     } catch (err){
         res.status(500).json({ status: '500', result: 'Internal Server Error'});
     }

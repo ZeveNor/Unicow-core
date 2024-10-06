@@ -8,7 +8,7 @@ const getAllCurriculum = async () => {
         result = await client.query('SELECT * FROM curriculum where isdelete = FALSE;');
         return result.rows;
     } catch (err) {
-        console.error('Error fetching all prefixes:', err);
+        console.error('Error fetching all curriculums:', err);
         throw err;
     } finally {
         client.release();
@@ -22,7 +22,7 @@ const getCurriculumById = async (id) => {
         console.log(result);
         return result.rows;
     } catch (err) {
-        console.error(`Error fetching prefix with ID ${id}:`, err);
+        console.error(`Error fetching curriculum with ID ${id}:`, err);
         throw err;
     } finally {
         client.release();
@@ -36,21 +36,29 @@ const getCurriculumByName = async (data,nameType) => {
         result = await client.query('SELECT * FROM curriculum WHERE $1 = $2 and isdelete = FALSE;', [nameType,name]);
         return result.rows.length > 0 ? result.rows[0] : null;
     } catch (err) {
-        console.error(`Error fetching prefix with name ${name}:`, err);
+        console.error(`Error fetching curriculum with name ${name}:`, err);
         throw err;
     } finally {
         client.release();
     }
 };
 
-const isCurriculumNameDuplicate = async (data,nameType) => {
+const isCurriculumNameDuplicate = async (data, nameType, id= null) => {
     const client = await postgres.connect();
-    const { name } = data;
     try {
-        const result = await client.query(
-            'SELECT * FROM curriculum WHERE $1 = $2 AND isdelete = FALSE',
-            [nameType,name]
-        );
+        let query;
+        let values;
+
+        if (id) {
+            query = `SELECT * FROM curriculum WHERE ${nameType} = $1 AND id != $2 AND isdelete = FALSE`;
+            values = [data, id];
+        } else {
+            query = `SELECT * FROM curriculum WHERE ${nameType} = $1 AND isdelete = FALSE`;
+            values = [data];
+        }
+
+        const result = await client.query(query, values);
+
         return result.rows.length > 0;
     } catch (err) {
         console.error('Error checking for duplicate Curriculum name:', err);
@@ -59,6 +67,7 @@ const isCurriculumNameDuplicate = async (data,nameType) => {
         client.release();
     }
 };
+
 
 const createCurriculum = async (data) => {
     const { curr_name_th, curr_name_en, short_name_th, short_name_en } = data;
@@ -104,7 +113,7 @@ const deleteCurriculum = async (id) => {
     const client = await postgres.connect();
     try {
         result = await client.query(
-            `UPDATE curriculum SET isdelete = TRUE ,updatedat = current_timestamp WHERE id = $1 and isdelete = FALSE RETURNING *;`, [id]
+            `UPDATE curriculum SET isdelete = TRUE ,updatedat = current_timestamp , deletedat = current_timestamp WHERE id = $1 and isdelete = FALSE RETURNING *;`, [id]
         );
         return result.rows.length > 0 ? result.rows : 'Curriculum not found';
     } catch (err) {

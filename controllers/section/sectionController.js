@@ -8,7 +8,7 @@ const getAllSection = async () => {
         result = await client.query('SELECT * FROM section where isdelete = FALSE;');
         return result.rows;
     } catch (err) {
-        console.error('Error fetching all prefixes:', err);
+        console.error('Error fetching all sections:', err);
         throw err;
     } finally {
         client.release();
@@ -22,7 +22,7 @@ const getSectionById = async (id) => {
         console.log(result);
         return result.rows;
     } catch (err) {
-        console.error(`Error fetching prefix with ID ${id}:`, err);
+        console.error(`Error fetching section with ID ${id}:`, err);
         throw err;
     } finally {
         client.release();
@@ -36,7 +36,7 @@ const getSectionByName = async (data) => {
         result = await client.query('SELECT * FROM section WHERE section = $1 and isdelete = FALSE;', [name]);
         return result.rows.length > 0 ? result.rows[0] : null;
     } catch (err) {
-        console.error(`Error fetching prefix with name ${name}:`, err);
+        console.error(`Error fetching section with name ${name}:`, err);
         throw err;
     } finally {
         client.release();

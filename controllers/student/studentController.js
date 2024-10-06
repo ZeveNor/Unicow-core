@@ -1,123 +1,107 @@
 import postgres from '../../utils/db.js';
 
-// Get All Student List. Only return students where isDelete is false.
+let result = '';
+
+// Get All Students
 const getAllStudents = async () => {
-  const client = await postgres.connect(); // Get a client from the pool
+  const client = await postgres.connect();
   try {
-    const result = await client.query('SELECT * FROM student WHERE isDelete = FALSE;');
+    result = await client.query('SELECT * FROM student WHERE isdelete = FALSE;');
     return result.rows;
-  } finally {
-    client.release(); // Release the client back to the pool
-  }
-};
-
-// 'SELECT * FROM student WHERE id = $1;', [req.params.id]
-const getStudentById = async (req, res) => {
-  const client = await pool.connect();
-  try {
-    const result = await client.query('SELECT * FROM student WHERE id = $1;', [req.params.id]);
-    
-    // console.log(result);
-    
-    if (result.rows.length > 0) {
-
-      res.json(result.rows[0]);
-      console.log("=> get students By ID", result.rows[0]);
-    
-    } else {
-      res.status(404).json({ error: 'Student not found' });
-    }
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Server down' });
+    console.error('Error fetching all students:', err);
+    throw err;
   } finally {
     client.release();
   }
 };
 
-// Create new Student record.
-const createStudent = async (data) => { // Removed 'req' and 'res' parameters
-  const {
-    prefixId,
-    firstName,
-    lastName,
-    dateOfBirth,
-    sex,
-    curriculumId,
-    previousSchool,
-    address,
-    telephone,
-    email,
-    lineId,
-    status,
-    isDelete,
-    updatedAt,
-    deletedAt
-  } = data;
-
+// Get Student by ID
+const getStudentById = async (id) => {
   const client = await postgres.connect();
   try {
-    const result = await client.query(
-        'INSERT INTO student (prefix_id, first_name, last_name, date_of_birth, sex, curriculum_id, previous_school, address, telephone, email, line_id, status, isdelete, createat, updateat, deleteat) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *;',
-        [prefixId, firstName, lastName, dateOfBirth, sex, curriculumId, previousSchool, address, telephone, email, lineId, status, isDelete, updatedAt, deletedAt]
-    );
-    return result.rows[0];
+    result = await client.query('SELECT * FROM student WHERE id = $1 and isdelete = FALSE;', [id]);
+    return result.rows;
+  } catch (err) {
+    console.error(`Error fetching student with ID ${id}:`, err);
+    throw err;
   } finally {
-    client.release(); // Ensure client is released after the query
+    client.release();
   }
 };
 
-// Update Student Details.
-const updateStudent = async (id, data) => { // Removed 'req' and 'res' parameters, added 'id'
-  const { firstName, lastName, age } = data;
+// Check if Prefix Name is Duplicate.
+const isStudentNameDuplicate = async (first_name, last_name) => {
   const client = await postgres.connect();
   try {
     const result = await client.query(
-        'UPDATE student SET first_name = $1, last_name = $2, age = $3, updateAt = CURRENT_TIMESTAMP WHERE id = $4 RETURNING *;',
-        [firstName, lastName, age, id]
-    );
-    return result.rows.length > 0 ? result.rows[0] : 'Student not found';
-  } finally {
-    client.release(); // Ensure client is released after the query
-  }
-};
-
-// Soft Delete a Student (set isDelete to true).
-const deleteStudent = async (id) => { // Removed 'req' and 'res' parameters, added 'id'
-  const client = await postgres.connect();
-  try {
-    const result = await client.query(
-        'UPDATE student SET isDelete = TRUE, deleteAt = CURRENT_TIMESTAMP WHERE id = $1 RETURNING *;',
-        [id]
+        'SELECT * FROM student WHERE first_name = $1 AND last_name = $2 AND isdelete = FALSE;',
+        [first_name, last_name]
     );
     return result.rows.length > 0;
+  } catch (err) {
+    console.error('Error checking for duplicate student name:', err);
+    throw err;
   } finally {
-    client.release(); // Ensure client is released after the query
+    client.release();
   }
 };
 
-// Restore a Student (set isDelete to false).
-const restoreStudent = async (id) => { // Removed 'req' and 'res' parameters, added 'id'
+// Create new Student
+const createStudent = async (data) => {
+  const { id, prefix_id, first_name, last_name, date_of_birth, sex, curriculum_id, previous_school, address, telephone, email, line_id, status } = data;
   const client = await postgres.connect();
   try {
     const result = await client.query(
-        'UPDATE student SET isDelete = FALSE, updateAt = CURRENT_TIMESTAMP WHERE id = $1 RETURNING *;',
-        [id]
+        `INSERT INTO student ( id, prefix_id, first_name, last_name, date_of_birth, sex, curriculum_id, previous_school, address, telephone, email, line_id, status)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+             RETURNING *;`,
+        [id,prefix_id, first_name, last_name, date_of_birth, sex, curriculum_id, previous_school, address, telephone, email, line_id, status]
     );
-    return result.rows.length > 0 ? result.rows[0] : 'Student not found';
+    return result.rows;
+  } catch (err) {
+    console.error('Error creating new student:', err);
+    throw err;
   } finally {
-    client.release(); // Ensure client is released after the query
+    client.release();
   }
 };
 
-// Permanently Delete a Student.
-const forceDelete = async (id) => { // Removed 'req' and 'res' parameters, added 'id'
+// Update Student
+const updateStudent = async (id, data) => {
+  const { prefix_id, first_name, last_name, data_of_birth, sex, curriculum_id, previous_school, address, telephone, email, line_id, status } = data;
   const client = await postgres.connect();
   try {
-    const result = await client.query('DELETE FROM student WHERE id = $1 RETURNING *;', [id]);
-    return result.rowCount > 0;
+    const result = await client.query(
+        `UPDATE student
+             SET prefix_id = $1, first_name = $2, last_name = $3, data_of_birth = $4, sex = $5, curriculum_id = $6, previous_school = $7, address = $8, telephone = $9, email = $10, line_id = $11, status = $12
+             WHERE id = $13 AND isdelete = FALSE
+             RETURNING *;`,
+        [prefix_id, first_name, last_name, data_of_birth, sex, curriculum_id, previous_school, address, telephone, email, line_id, status, id]
+    );
+    return result.rows;
+  } catch (err) {
+    console.error(`Error updating student with ID ${id}:`, err);
+    throw err;
   } finally {
-    client.release(); // Ensure client is released after the query
+    client.release();
+  }
+};
+
+// Delete Student
+const deleteStudent = async (id) => {
+  const client = await postgres.connect();
+  try {
+    const result = await client.query(
+        `UPDATE student SET isdelete = TRUE, updatedat = CURRENT_TIMESTAMP WHERE id = $1 RETURNING *;`,
+        [id]
+    );
+    return result.rows;
+  } catch (err) {
+    console.error(`Error deleting student with ID ${id}:`, err);
+    throw err;
+  } finally {
+    client.release();
   }
 };
 
@@ -127,6 +111,5 @@ export default {
   createStudent,
   updateStudent,
   deleteStudent,
-  forceDelete,
-  restoreStudent
+  isStudentNameDuplicate
 };

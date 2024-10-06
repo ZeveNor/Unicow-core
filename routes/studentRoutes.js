@@ -1,32 +1,21 @@
-import express from "express";
-import StudentController from "../controllers/section/sectionController.js";
+import express from 'express';
+import StudentController from '../controllers/student/studentController.js';
 
 const router = express.Router();
 
-/* API Routing Path
-    Get /api/students/
-    Get /api/students/:id
-    Create /api/students/
-    Update /api/students/:id
-    Delete /api/students/:id
-    Permanent Delete /api/students/:id (Force Delete Danger!!)
-*/
-
+// Get all students
 router.get('/', async (req, res) => {
   try {
     const data = await StudentController.getAllStudents();
     res.status(200).json({ status: '200', result: data });
   } catch (err) {
-    console.log(err);
     res.status(500).json({ status: '500', result: 'Internal Server Error' });
   }
 });
 
+// Get student by ID
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
-  if (!id) {
-    return res.status(400).json({ status: '400', result: 'ID is required.' });
-  }
   try {
     const data = await StudentController.getStudentById(id);
     res.status(200).json({ status: '200', result: data });
@@ -35,103 +24,63 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// Create new student
 router.post('/', async (req, res) => {
-  const {
-    prefix_id: prefixId,
-    first_name: firstName,
-    last_name: lastName,
-    date_of_birth: dateOfBirth,
-    sex,
-    curriculum_id: curriculumId,
-    previous_school: previousSchool,
-    address,
-    telephone,
-    email,
-    line_id: lineId,
-    status,
-  } = req.body;
-
   const studentData = {
-    prefixId,
-    firstName,
-    lastName,
-    dateOfBirth,
-    sex,
-    curriculumId,
-    previousSchool,
-    address,
-    telephone,
-    email,
-    lineId,
-    status,
-    isDelete: false,
-    updatedAt: null,
-    deletedAt: null,
+    id: req.body.id,
+    prefix_id: req.body.prefix_id,
+    first_name: req.body.first_name,
+    last_name: req.body.last_name,
+    date_of_birth: req.body.date_of_birth,
+    sex: req.body.sex,
+    curriculum_id: req.body.curriculum_id,
+    previous_school: req.body.previous_school,
+    address: req.body.address,
+    telephone: req.body.telephone,
+    email: req.body.email,
+    line_id: req.body.line_id,
+    status: req.body.status,
   };
 
-  try {
-    const data = await StudentController.createStudent(studentData);
-    res.status(201).json({ status: 201, result: data });
-  } catch (error) {
-    res.status(500).json({ status: 500, message: 'Error creating student', error: error.message });
-  }
-});
-
-router.put('/:id', async (req, res) => { // Added `async`
-  const { id } = req.params;
-  const updateData = req.body;
-
-  if (!id || !updateData) {
-    return res.status(400).json({ code: '400', description: 'ID and update data required.' });
+  if (!studentData.first_name || !studentData.last_name) {
+    return res.status(400).json({ status: '400', message: 'First name and last name are required.' });
   }
 
   try {
-    const data = await StudentController.updateStudent(id, updateData);
-    if (data) {
-      res.status(200).json({ status: 200, result: data });
-    } else {
-      res.status(404).json({ code: '404', description: 'Student not found.' });
+    const isDuplicate = await StudentController.isStudentNameDuplicate(studentData.first_name, studentData.last_name);
+
+    if (isDuplicate) {
+      return res.status(400).json({ status: '400', message: 'Student name already exists.' });
     }
-  } catch (error) {
-    res.status(500).json({ status: 500, message: 'Error updating student', error: error.message });
+
+    // Proceed with creating the student if no duplicate is found
+    const newStudent = await StudentController.createStudent(studentData);
+    return res.status(201).json({ status: '201', result: newStudent });
+  } catch (err) {
+    console.error('Error creating student:', err);
+    return res.status(500).json({ status: '500', message: 'Internal Server Error' });
   }
 });
 
-router.delete('/:id', async (req, res) => { // Added `async`
+// Update student
+router.put('/:id', async (req, res) => {
   const { id } = req.params;
-
-  if (!id) {
-    return res.status(400).json({ code: '400', description: 'ID is required.' });
+  try {
+    const data = await StudentController.updateStudent(id, req.body);
+    res.status(200).json({ status: '200', result: data });
+  } catch (err) {
+    res.status(500).json({ status: '500', result: 'Internal Server Error' });
   }
+});
 
+// Delete student
+router.put('/delete/:id', async (req, res) => {
+  const { id } = req.params;
   try {
     const data = await StudentController.deleteStudent(id);
-    if (data) {
-      res.status(204).send();
-    } else {
-      res.status(404).json({ code: '404', description: 'Student not found.' });
-    }
-  } catch (error) {
-    res.status(500).json({ status: 500, message: 'Error deleting student', error: error.message });
-  }
-});
-
-router.delete('/console/:id', async (req, res) => { // Added `async`
-  const { id } = req.params;
-
-  if (!id) {
-    return res.status(400).json({ code: '400', description: 'ID is required.' });
-  }
-
-  try {
-    const data = await StudentController.forceDelete(id);
-    if (data) {
-      res.status(204).send();
-    } else {
-      res.status(404).json({ code: '404', description: 'Student not found.' });
-    }
-  } catch (error) {
-    res.status(500).json({ status: 500, message: 'Error permanently deleting student', error: error.message });
+    res.status(200).json({ status: '200', result: data });
+  } catch (err) {
+    res.status(500).json({ status: '500', result: 'Internal Server Error' });
   }
 });
 

@@ -59,7 +59,6 @@ router.post('/', async (req, res) => {
         const checkNameCEN = await CurriculumController.isCurriculumNameDuplicate(curriculumsData.curr_name_en, 'curr_name_en');
         const checkNameSTH = await CurriculumController.isCurriculumNameDuplicate(curriculumsData.short_name_th, 'short_name_th');
         const checkNameSEN = await CurriculumController.isCurriculumNameDuplicate(curriculumsData.short_name_en, 'short_name_en');
-
         if (!checkNameCTH && !checkNameCEN && !checkNameSTH && !checkNameSEN) {
             const data = await CurriculumController.createCurriculum(curriculumsData);
             return res.status(201).json({ status: 201, result: data });
@@ -86,10 +85,10 @@ router.put('/:id', async (req, res) => {
         res.status(400).json({status:'400',result: 'update must be have input.'});
     }
     try{
-        const checkNameCTH = await CurriculumController.isCurriculumNameDuplicate(curriculumsData.curr_name_th, 'curr_name_th');
-        const checkNameCEN = await CurriculumController.isCurriculumNameDuplicate(curriculumsData.curr_name_en, 'curr_name_en');
-        const checkNameSTH = await CurriculumController.isCurriculumNameDuplicate(curriculumsData.short_name_th, 'short_name_th');
-        const checkNameSEN = await CurriculumController.isCurriculumNameDuplicate(curriculumsData.short_name_en, 'short_name_en');
+        const checkNameCTH = await CurriculumController.isCurriculumNameDuplicate(curriculumsData.curr_name_th, 'curr_name_th', id);
+        const checkNameCEN = await CurriculumController.isCurriculumNameDuplicate(curriculumsData.curr_name_en, 'curr_name_en', id);
+        const checkNameSTH = await CurriculumController.isCurriculumNameDuplicate(curriculumsData.short_name_th, 'short_name_th', id);
+        const checkNameSEN = await CurriculumController.isCurriculumNameDuplicate(curriculumsData.short_name_en, 'short_name_en', id);
 
         if (!checkNameCTH && !checkNameCEN && !checkNameSTH && !checkNameSEN) {
             const data = await CurriculumController.updateCurriculum(id, curriculumsData);
@@ -140,7 +139,7 @@ router.delete('/:id',async (req, res) => {
     }
     try{
         const data = await CurriculumController.forceDeleteCurriculum(id);
-        res.status(200).json({ status: '200', result: data });
+        res.status(200).json({ status: '200', result: data , desc: 'Forces deleted completed.'});
     } catch (err){
         res.status(500).json({ status: '500', result: 'Internal Server Error'});
     }
