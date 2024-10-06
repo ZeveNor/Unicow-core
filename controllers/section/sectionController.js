@@ -2,14 +2,13 @@ import postgres from '../../utils/db.js';
 
 let result = '';
 
-//
 const getAllSection = async () => {
     const client = await postgres.connect();
     try {
-        result = await client.query('SELECT * FROM section and isdelete = FALSE;');
+        result = await client.query('SELECT * FROM section where isdelete = FALSE;');
         return result.rows;
     } catch (err) {
-        console.error('Error fetching all prefixes:', err);
+        console.error('Error fetching all sections:', err);
         throw err;
     } finally {
         client.release();
@@ -23,7 +22,7 @@ const getSectionById = async (id) => {
         console.log(result);
         return result.rows;
     } catch (err) {
-        console.error(`Error fetching prefix with ID ${id}:`, err);
+        console.error(`Error fetching section with ID ${id}:`, err);
         throw err;
     } finally {
         client.release();
@@ -34,10 +33,10 @@ const getSectionByName = async (data) => {
     const client = await postgres.connect();
     const { name } = data;
     try {
-        result = await client.query('SELECT * FROM section WHERE name = $1 and isdelete = FALSE;', [name]);
+        result = await client.query('SELECT * FROM section WHERE section = $1 and isdelete = FALSE;', [name]);
         return result.rows.length > 0 ? result.rows[0] : null;
     } catch (err) {
-        console.error(`Error fetching prefix with name ${name}:`, err);
+        console.error(`Error fetching section with name ${name}:`, err);
         throw err;
     } finally {
         client.release();
@@ -49,7 +48,7 @@ const isSectionNameDuplicate = async (data) => {
     const { name } = data;
     try {
         const result = await client.query(
-            'SELECT * FROM section WHERE name = $1 AND isdelete = FALSE',
+            'SELECT * FROM section WHERE section = $1 AND isdelete = FALSE',
             [name]
         );
         return result.rows.length > 0;
@@ -64,9 +63,13 @@ const isSectionNameDuplicate = async (data) => {
 const createSection = async (data) => {
     const { name } = data;
     const client = await postgres.connect();
+
     try {
-        result = await client.query(
-            `INSERT INTO section (name) VALUES ($1) RETURNING *;`, [name]
+        const result = await client.query(
+            `INSERT INTO section (section, isdelete)
+             VALUES ($1, $2)
+             RETURNING *;`,
+            [name, false ]
         );
         return result.rows;
     } catch (err) {
@@ -82,7 +85,11 @@ const updateSection = async (id, data) => {
     const client = await postgres.connect();
     try {
         const result = await client.query(
-            `UPDATE section SET name = $1 WHERE id = $2 and isdelete = FALSE RETURNING *;`, [name, id]
+            `UPDATE section
+             SET section = $1
+             WHERE id = $2 AND isdelete = FALSE
+             RETURNING *;`,
+            [name, id]
         );
         return result.rows.length > 0 ? result.rows : 'Section not found';
     } catch (err) {
@@ -97,7 +104,7 @@ const deleteSection = async (id) => {
     const client = await postgres.connect();
     try {
         result = await client.query(
-            `UPDATE section SET isdelete = TRUE WHERE id = $1 and isdelete = FALSE RETURNING *;`, [id]
+            `UPDATE section SET isdelete = TRUE ,updatedat = current_timestamp WHERE id = $1 and isdelete = FALSE RETURNING *;`, [id]
         );
         return result.rows.length > 0 ? result.rows : 'Section not found';
     } catch (err) {
@@ -112,7 +119,7 @@ const restoreSection = async (id) => {
     const client = await postgres.connect();
     try {
         const result = await client.query(
-            `UPDATE section SET isdelete = FALSE WHERE id = $1 and isdelete = TRUE RETURNING *;`, [id]
+            `UPDATE section SET isdelete = FALSE , updatedat = current_timestamp , deletedat = null WHERE id = $1 and isdelete = TRUE RETURNING *;`, [id]
         );
         return result.rows.length > 0 ? result.rows[0] : 'Section not found';
     } catch (err) {

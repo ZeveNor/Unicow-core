@@ -53,7 +53,7 @@ router.post('/', async (req, res) => {
         const checkName = await SectionController.isSectionNameDuplicate(sectionsData)
         if (!checkName) {
             const data = await SectionController.createSection(sectionsData);
-            res.status(200).json({ status: 200, result: data });
+            res.status(201).json({ status: 201, result: data });
         }else {
             res.status(400).json({ status: '400', result: 'Section name is duplicated.' });
         }
@@ -76,7 +76,7 @@ router.put('/:id', async (req, res) => {
         const checkName = await SectionController.isSectionNameDuplicate(sectionsData)
         if (!checkName) {
             const data = await SectionController.updateSection(id, sectionsData);
-            res.status(200).json({ status: '200', result: data });
+            res.status(201).json({ status: '201', result: data });
         }
         else{
             res.status(400).json({ status: '400', result: 'Section name is duplicated.' });
@@ -123,7 +123,7 @@ router.delete('/:id',async (req, res) => {
     }
     try{
         const data = await SectionController.forceDeleteSection(id);
-        res.status(200).json({ status: '200', result: data });
+        res.status(200).json({ status: '200', result: data, desc: 'Forces deleted completed.' });
     } catch (err){
         res.status(500).json({ status: '500', result: 'Internal Server Error'});
     }

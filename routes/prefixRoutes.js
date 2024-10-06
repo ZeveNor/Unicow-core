@@ -53,7 +53,7 @@ router.post('/', async (req, res) => {
         const checkName = await PrefixController.isPrefixNameDuplicate(prefixData)
         if (!checkName) {
             const data = await PrefixController.createPrefix(prefixData);
-            res.status(200).json({ status: 200, result: data });
+            res.status(201).json({ status: 201, result: data });
         }else {
             res.status(400).json({ status: '400', result: 'Prefix name is duplicated.' });
         }
@@ -76,7 +76,7 @@ router.put('/:id', async (req, res) => {
         const checkName = await PrefixController.isPrefixNameDuplicate(prefixData)
         if (!checkName) {
             const data = await PrefixController.updatePrefix(id, prefixData);
-            res.status(200).json({ status: '200', result: data });
+            res.status(201).json({ status: '201', result: data });
         }
         else{
             res.status(400).json({ status: '400', result: 'Prefix name is duplicated.' });
@@ -95,7 +95,7 @@ router.put('/delete/:id', async (req, res) => {
     }
     try {
         const data = await PrefixController.deletePrefix(id);
-        res.status(200).json({ status: '200', result: data });
+        res.status(201).json({ status: '201', result: data });
     }catch (err) {
         res.status(500).json({ status: '500', result: 'Internal Server Error' });
     }
@@ -109,7 +109,7 @@ router.put('/restore/:id',async (req, res) => {
     }
     try{
         const data = await PrefixController.restorePrefix(id);
-        res.status(200).json({ status: '200', result: data});
+        res.status(201).json({ status: '201', result: data});
     } catch (err){
         res.status(500).json({ status: '500', result: 'Internal Server Error'});
     }
@@ -123,7 +123,7 @@ router.delete('/:id',async (req, res) => {
     }
     try{
         const data = await PrefixController.forceDeletePrefix(id);
-        res.status(200).json({ status: '200', result: data });
+        res.status(201).json({ status: '201', result: data , desc: 'Forces deleted completed.' });
     } catch (err){
         res.status(500).json({ status: '500', result: 'Internal Server Error'});
     }
