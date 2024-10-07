@@ -6,7 +6,7 @@ Unicow-core is a Node.js-based application designed to streamline development wi
 
 Ensure the following prerequisites are met before setting up the project:
 
-- **Node.js** version: v20.17.0  
+- **Node.js** version: v20.17.0
 - **npm** (Node Package Manager)
 
 If you do not have the required Node.js version, you can manage it using [nvm (Node Version Manager)](https://github.com/nvm-sh/nvm):
@@ -18,12 +18,12 @@ nvm use 20.17.0
 
 ## Installation
 
-1. Clone the repository:  
+1. Clone the repository:
   ```
    git clone https://github.com/your-username/unicow-core.git  
    cd unicow-core
   ```
-3. Install the required dependencies:  
+3. Install the required dependencies:
   ```
     npm install
   ```
@@ -65,4 +65,3 @@ Once all dependencies are installed, you can start the development server by run
 nvm use 20.17.0  
 nodemon index.js
 ```
-

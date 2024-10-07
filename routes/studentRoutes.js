@@ -1,5 +1,6 @@
 import express from 'express';
 import StudentController from '../controllers/student/studentController.js';
+import SubjectController from "../controllers/subject/subjectController.js";
 
 const router = express.Router();
 
@@ -21,6 +22,20 @@ router.get('/:id', async (req, res) => {
     res.status(200).json({ status: '200', result: data });
   } catch (err) {
     res.status(500).json({ status: '500', result: 'Internal Server Error' });
+  }
+});
+
+router.get('/student/:student_id', async (req, res) => {
+  const { student_id } = req.params;
+  try {
+    const subjects = await SubjectController.getSubjectsByStudentId(student_id);
+    if (subjects.length === 0) {
+      return res.status(404).json({ status: '404', message: 'No subjects found for this student' });
+    }
+    return res.status(200).json({ status: '200', result: subjects });
+  } catch (err) {
+    console.error(`Error fetching subjects for student ID ${student_id}:`, err);
+    return res.status(500).json({ status: '500', message: 'Error fetching subjects for student' });
   }
 });
 
@@ -83,5 +98,28 @@ router.put('/delete/:id', async (req, res) => {
     res.status(500).json({ status: '500', result: 'Internal Server Error' });
   }
 });
+
+// Restore student
+router.put('/restore/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const data = await StudentController.restoreStudent(id);
+    res.status(200).json({ status: '200', result: data });
+  } catch (err) {
+    res.status(500).json({ status: '500', result: 'Internal Server Error' });
+  }
+});
+
+// Delete student
+router.delete('/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const data = await StudentController.forceDeleteStudent(id);
+    res.status(200).json({ status: '200', result: data });
+  } catch (err) {
+    res.status(500).json({ status: '500', result: 'Internal Server Error' });
+  }
+});
+
 
 export default router;
