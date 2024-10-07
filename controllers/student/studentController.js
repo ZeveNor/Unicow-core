@@ -69,15 +69,15 @@ const createStudent = async (data) => {
 
 // Update Student
 const updateStudent = async (id, data) => {
-  const { prefix_id, first_name, last_name, data_of_birth, sex, curriculum_id, previous_school, address, telephone, email, line_id, status } = data;
+  const { prefix_id, first_name, last_name, date_of_birth, sex, curriculum_id, previous_school, address, telephone, email, line_id, status } = data;
   const client = await postgres.connect();
   try {
     const result = await client.query(
         `UPDATE student
-             SET prefix_id = $1, first_name = $2, last_name = $3, data_of_birth = $4, sex = $5, curriculum_id = $6, previous_school = $7, address = $8, telephone = $9, email = $10, line_id = $11, status = $12
+             SET prefix_id = $1, first_name = $2, last_name = $3, date_of_birth = $4, sex = $5, curriculum_id = $6, previous_school = $7, address = $8, telephone = $9, email = $10, line_id = $11, status = $12
              WHERE id = $13 AND isdelete = FALSE
              RETURNING *;`,
-        [prefix_id, first_name, last_name, data_of_birth, sex, curriculum_id, previous_school, address, telephone, email, line_id, status, id]
+        [prefix_id, first_name, last_name, date_of_birth, sex, curriculum_id, previous_school, address, telephone, email, line_id, status, id]
     );
     return result.rows;
   } catch (err) {
@@ -93,12 +93,45 @@ const deleteStudent = async (id) => {
   const client = await postgres.connect();
   try {
     const result = await client.query(
-        `UPDATE student SET isdelete = TRUE, updatedat = CURRENT_TIMESTAMP WHERE id = $1 RETURNING *;`,
+        `UPDATE student SET isdelete = TRUE , updatedat = current_timestamp WHERE id = $1 RETURNING *;`,
         [id]
     );
     return result.rows;
   } catch (err) {
     console.error(`Error deleting student with ID ${id}:`, err);
+    throw err;
+  } finally {
+    client.release();
+  }
+};
+
+// Restore Student
+const restoreStudent = async (id) => {
+  const client = await postgres.connect();
+  try {
+    const result = await client.query(
+        `UPDATE student SET isdelete = FALSE , updatedat = current_timestamp WHERE id = $1 RETURNING *;`,
+        [id]
+    );
+    return result.rows;
+  } catch (err) {
+    console.error(`Error deleting student with ID ${id}:`, err);
+    throw err;
+  } finally {
+    client.release();
+  }
+};
+
+// Restore Student
+const forceDeleteStudent = async (id) => {
+  const client = await postgres.connect();
+  try {
+    const result = await client.query(
+        `DELETE FROM student WHERE id = $1 RETURNING *;`, [id]
+    );
+    return result.rows.length > 0 ? result.rows[0] : 'Section not found';
+  } catch (err) {
+    console.error(`Error force deleting Section with ID ${id}:`, err);
     throw err;
   } finally {
     client.release();
@@ -111,5 +144,7 @@ export default {
   createStudent,
   updateStudent,
   deleteStudent,
+  restoreStudent,
+  forceDeleteStudent,
   isStudentNameDuplicate
 };

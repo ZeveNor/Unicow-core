@@ -1,38 +1,41 @@
 import postgres from '../../utils/db.js';  // Assuming you have your Postgres client set up
 
-// Function to mark attendance
-const markAttendance = async ({ student_id, section_id, subject_id, attendance_date, status, remark, medical_document_path }) => {
+// Function to mark attendance in student_list
+const markStudentList = async ({ student_id, section_id, subject_id, attendance_date, status, remark, medical_document_path }) => {
     const client = await postgres.connect();
     try {
         const result = await client.query(
-            `INSERT INTO attendance (student_id, section_id, subject_id, attendance_date, status, remark, medical_document_path)
+            `INSERT INTO student_list (student_id, section_id, subject_id, attendance_date, status, remark, medical_document_path)
              VALUES ($1, $2, $3, $4, $5, $6, $7)
              RETURNING *;`,
             [student_id, section_id, subject_id, attendance_date, status, remark, medical_document_path]
         );
         return result.rows[0];
     } catch (err) {
-        console.error('Error marking attendance:', err);
+        console.error('Error marking student_list:', err);
         throw err;
     } finally {
         client.release();
     }
 };
 
-// Function to update attendance (within 2-hour window)
-const updateAttendance = async (id, { status, remark }) => {
+// Function to update attendance within 2-hour window
+const updateStudentList = async (student_id, section_id, subject_id, attendance_date, { status, remark, medical_document_path }) => {
     const client = await postgres.connect();
 
     try {
-        const attendanceResult = await client.query(`SELECT createdat FROM attendance WHERE id = $1`, [id]);
+        const studentListResult = await client.query(
+            `SELECT createdat FROM student_list
+             WHERE student_id = $1 AND section_id = $2 AND subject_id = $3 AND attendance_date = $4`,
+            [student_id, section_id, subject_id, attendance_date]
+        );
 
-        if (attendanceResult.rows.length === 0) {
+        if (studentListResult.rows.length === 0) {
             return { error: 'Attendance record not found' };
         }
 
-        const createdAt = attendanceResult.rows[0].createdat;
+        const createdAt = studentListResult.rows[0].createdat;
         const now = new Date();
-
         const timeDifference = Math.abs(now - new Date(createdAt)) / (1000 * 60 * 60);
 
         if (timeDifference > 2) {
@@ -40,11 +43,11 @@ const updateAttendance = async (id, { status, remark }) => {
         }
 
         const result = await client.query(
-            `UPDATE attendance
-             SET status = $1, remark = $2, updatedat = CURRENT_TIMESTAMP
-             WHERE id = $3
+            `UPDATE student_list
+             SET status = $1, remark = $2, medical_document_path = $3, updatedat = CURRENT_TIMESTAMP
+             WHERE student_id = $4 AND section_id = $5 AND subject_id = $6 AND attendance_date = $7
              RETURNING *`,
-            [status, remark, id]
+            [status, remark, medical_document_path, student_id, section_id, subject_id, attendance_date]
         );
 
         return result.rows[0];
@@ -56,11 +59,11 @@ const updateAttendance = async (id, { status, remark }) => {
     }
 };
 
-// Optional: Function to retrieve all attendance records
-const getAttendance = async () => {
+// Function to retrieve all attendance records
+const getStudentList = async () => {
     const client = await postgres.connect();
     try {
-        const result = await client.query(`SELECT * FROM attendance ORDER BY attendance_date DESC`);
+        const result = await client.query(`SELECT * FROM student_list ORDER BY attendance_date DESC`);
         return result.rows;
     } catch (err) {
         console.error('Error fetching attendance records:', err);
@@ -70,4 +73,4 @@ const getAttendance = async () => {
     }
 };
 
-export default { markAttendance, updateAttendance, getAttendance };
+export default { markStudentList, updateStudentList, getStudentList };

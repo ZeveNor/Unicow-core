@@ -30,6 +30,26 @@ const getSubjectById = async (id) => {
     }
 };
 
+// Fetch subjects for a specific student by student_id
+const getSubjectsByStudentId = async (student_id) => {
+    const client = await postgres.connect();
+    try {
+        const result = await client.query(
+            `SELECT s.subject_id, s.subject_name_en, s.subject_name_th, s.description 
+             FROM subject s
+             INNER JOIN student_list sl ON sl.subject_id = s.subject_id
+             WHERE sl.student_id = $1 AND s.isdelete = FALSE;`,
+            [student_id]
+        );
+        return result.rows;
+    } catch (err) {
+        console.error(`Error fetching subjects for student ID ${student_id}:`, err);
+        throw err;
+    } finally {
+        client.release();
+    }
+};
+
 // Create a new subject
 const createSubject = async (data) => {
     const { subject_id, subject_name_en, subject_name_th, description } = data;
@@ -129,6 +149,7 @@ const forceDeleteSubject = async (id) => {
 export default {
     getAllSubjects,
     getSubjectById,
+    getSubjectsByStudentId,
     createSubject,
     updateSubject,
     deleteSubject,
