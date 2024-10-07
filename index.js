@@ -9,7 +9,6 @@ import studentRoutes from './routes/studentRoutes.js';
 import prefixRoutes from  './routes/prefixRoutes.js'
 import sectionRoutes from "./routes/sectionRoutes.js";
 import curriculumRoutes from "./routes/curriculumRoutes.js";
-import studentListRoutes from "./routes/studentListRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
 import subjectRoutes from "./routes/subjectRoutes.js";
 import attendanceRoutes from "./routes/attendanceRoutes.js";
@@ -23,7 +22,6 @@ app.use('/api/students', studentRoutes);
 app.use('/api/prefixs', prefixRoutes);
 app.use('/api/sections', sectionRoutes);
 app.use('/api/curriculums', curriculumRoutes);
-app.use('/api/studentLists', studentListRoutes);
 app.use('/api/uploads', uploadRoutes);
 app.use('/api/subjects', subjectRoutes);
 app.use('/api/attendances', attendanceRoutes);

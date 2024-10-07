@@ -9,14 +9,12 @@ router.post('/', upload.single('medical_document'), async (req, res) => {
     try {
         const { student_id, section_id, subject_id, attendance_date, status, remark } = req.body;
 
-        // Handle medical document upload (optional)
         let medical_document_path = null;
         if (req.file) {
             const fileUploadResponse = await uploadFile(req, res);
             medical_document_path = fileUploadResponse.downloadURL;
         }
 
-        // Mark attendance in student_list
         const result = await StudentListController.markStudentList({
             student_id,
             section_id,
@@ -39,7 +37,6 @@ router.put('/', async (req, res) => {
     try {
         const { student_id, section_id, subject_id, attendance_date, status, remark } = req.body;
 
-        // Handle medical document upload (optional)
         let medical_document_path = null;
         if (req.file) {
             const fileUploadResponse = await uploadFile(req, res);
